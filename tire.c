@@ -17,16 +17,32 @@
 
 #define bool _Bool
 
-FILE* raw;
+#define BUFFER_SIZE (1 << 25) //~33 MB
 
-const long BUFFER_SIZE = 1 << 25; //~33 MB
+FILE* raw;
 unsigned char* image_buffer;
-unsigned long buffer_start = 0;
+unsigned long long buffer_start = 0;
+unsigned long long current_position = 0;
+
+void set_position(unsigned long long pos) {
+
+    // TODO - accept long long
+    fseek(raw, pos, SEEK_SET);
+
+}
+
+bool read_char(unsigned char* c) {
+
+    int n = fread(c, 1, 1, raw);
+    current_position += n;
+    return n == 1;
+
+}
 
 void save_buffer() {
 
     char name[32];
-    sprintf(name, "%lu", buffer_start);
+    sprintf(name, "%llu", buffer_start);
     strcat(name, ".jpg");
 
     FILE *fp = fopen(name, "wb");
@@ -37,7 +53,7 @@ void save_buffer() {
 
     }
 
-    fwrite(image_buffer, 1, ftell(raw) - buffer_start, fp);
+    fwrite(image_buffer, 1, current_position - buffer_start, fp);
     
     fclose(fp);
 
@@ -47,27 +63,27 @@ bool get_image() {
 
     unsigned char c;
 
-    if (fread(&c, 1, 1, raw) == 0)
+    if (!read_char(&c))
         return 0;
 
     if (c != 0xFF)
         return 0;
 
-    buffer_start = ftell(raw) - 3;
+    buffer_start = current_position - 3;
     printf("Image at %f GB ---- ", (double)buffer_start / (1 << 30));
 
     bool ff = 1;
     
     while (1) {
 
-        if (fread(&c, 1, 1, raw) == 0) {
+        if (!read_char(&c)) {
 
             printf("EOF\n");
             return 0;
 
         }
 
-        if ((ftell(raw) - buffer_start) >= BUFFER_SIZE) {
+        if ((current_position - buffer_start) >= BUFFER_SIZE) {
             // Buffer has finnished
 
             printf("too big\n");
@@ -75,14 +91,14 @@ bool get_image() {
 
         }
 
-        image_buffer[ftell(raw) - buffer_start - 1] = c;
+        image_buffer[current_position - buffer_start - 1] = c;
         
         if (ff && c == 0xD9) {
 
             // Image must be at least 1 kB
-            if (ftell(raw) - buffer_start > 1 << 10) {
+            if (current_position - buffer_start > 1 << 10) {
 
-                printf("%lu.jpg\n", buffer_start);
+                printf("%llu.jpg\n", buffer_start);
                 save_buffer();
 
             } else {
@@ -141,8 +157,7 @@ int main(int argc, char** argv) {
         if (argc > 3)
             base = strtol(argv[2], NULL, 10);
 
-        unsigned long pos = strtol(argv[1], NULL, base);
-        fseek(raw, pos, SEEK_SET);
+        set_position( strtoll(argv[1], NULL, base) );
     
     }
 
@@ -152,7 +167,7 @@ int main(int argc, char** argv) {
 
         unsigned char c;
 
-        if (fread(&c, 1, 1, raw) == 0)
+        if (!read_char(&c))
             break;
         
         if (c == 0xD8 && ff)
@@ -162,7 +177,7 @@ int main(int argc, char** argv) {
 
     }
 
-    printf("Total: %lu bytes.\n", ftell(raw));
+    printf("Total: %llu bytes.\n", current_position);
 
     free(image_buffer);
     return 0;

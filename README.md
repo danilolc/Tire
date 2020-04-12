@@ -14,7 +14,7 @@ Normal user can't read  `/dev/sdx` directely, you must
 run it as super user (run it with `sudo`).
 
 It will probably work on Windows using the device on
-`\\?\Device\`, but I didn't test.
+`\\.\PhysicalDrive0`, but I didn't test.
 
 Compile it using `-O2`, it will get realy fast.
 
