@@ -2,7 +2,7 @@
 
 ## Tiny Image Recoverer
 
-Stupidly check for a JPG image on a raw file.
+Stupidly check for JPG images on a raw file.
 It will search for the `0xFFD8` marker to start an image
 and the `0xFFD9` marker to end a image.
 
