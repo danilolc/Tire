@@ -27,7 +27,10 @@ unsigned long long current_position = 0;
 void set_position(unsigned long long pos) {
 
     // TODO - accept long long
-    fseek(raw, pos, SEEK_SET);
+    if (fseek(raw, pos, SEEK_SET) == 0)
+        current_position = pos;
+    else
+        printf("Coudn't set position to %llu\n", pos);
 
 }
 
@@ -155,9 +158,9 @@ int main(int argc, char** argv) {
         
         int base = 10;
         if (argc > 3)
-            base = strtol(argv[2], NULL, 10);
+            base = strtol(argv[3], NULL, 10);
 
-        set_position( strtoll(argv[1], NULL, base) );
+        set_position( strtoll(argv[2], NULL, base) );
     
     }
 
