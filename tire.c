@@ -11,6 +11,7 @@
 // start - position to start looking for jpg images
 // base - the positional base that start is written - default is base 10
 
+#define __USE_MINGW_ANSI_STDIO 1
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,13 +25,12 @@ unsigned char* image_buffer;
 unsigned long long buffer_start = 0;
 unsigned long long current_position = 0;
 
-void set_position(unsigned long long pos) {
+bool set_position(unsigned long long pos) {
+
+    current_position = pos;
 
     // TODO - accept long long
-    if (fseek(raw, pos, SEEK_SET) == 0)
-        current_position = pos;
-    else
-        printf("Coudn't set position to %llu\n", pos);
+    return (fseek(raw, pos, SEEK_SET) == 0);
 
 }
 
@@ -134,11 +134,6 @@ bool get_image() {
 
 int main(int argc, char** argv) {
 
-    image_buffer = malloc(BUFFER_SIZE);
-    image_buffer[0] = 0xFF;
-    image_buffer[1] = 0xD8;
-    image_buffer[2] = 0xFF;
-    
     if (argc == 0) {
 
         printf("Usage:\n ./Tire FILE [start] [base]\n");
@@ -149,8 +144,8 @@ int main(int argc, char** argv) {
     raw = fopen(argv[1], "rb");
     if (!raw) {
 
-        printf("Can't open %s\n", argv[1]);
-        return 1;        
+        printf("Can't open %s.\n", argv[1]);
+        return 2;
 
     }
 
@@ -160,10 +155,21 @@ int main(int argc, char** argv) {
         if (argc > 3)
             base = strtol(argv[3], NULL, 10);
 
-        set_position( strtoll(argv[2], NULL, base) );
+        unsigned long long pos = strtoll(argv[2], NULL, base);
+        if (!set_position(pos)) {
+
+            printf("Can't seek to %llu.\n", pos);
+            return 3;
+
+        }
     
     }
 
+    image_buffer = malloc(BUFFER_SIZE);
+    image_buffer[0] = 0xFF;
+    image_buffer[1] = 0xD8;
+    image_buffer[2] = 0xFF;    
+    
     bool ff = 0;
     
     while(1) {
