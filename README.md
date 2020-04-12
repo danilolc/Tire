@@ -10,7 +10,7 @@ You can use it to find deleted images on a disk.
 Just pass the disk file (something like `/dev/sda`)
 as argument, and it will save all jpg images it found.
 
-Normal user can't read  `/dev/sdx` directely, you must
+Normal user can't read  `/dev/sdx` directly, you must
 run it as super user (run it with `sudo`).
 
 It will probably work on Windows using the device on
