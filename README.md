@@ -7,8 +7,11 @@ It will search for the `0xFFD8` marker to start an image
 and the `0xFFD9` marker to end a image.
 
 You can use it to find deleted images on a disk.
-Just pass the disk file (something like `/dev/sdb`)
+Just pass the disk file (something like `/dev/sda`)
 to the `stdin`, and it will save all jpg images it found.
+
+Normal user can't read  `/dev/sdx` directely, you must
+run it as super user (do `sudo su` before running it).
 
 It will probably work on Windows using the device on
 `\\?\Device\`, but I didn't test.
